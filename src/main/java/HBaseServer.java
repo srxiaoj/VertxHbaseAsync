@@ -1,15 +1,13 @@
 import java.io.IOException;
-import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
-import javax.security.auth.login.Configuration;
-
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HConnectionManager;
-import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.commons.configuration.Configuration;
+import org.hbase.async.Bytes;
 import org.hbase.async.GetRequest;
 import org.hbase.async.HBaseClient;
+import org.hbase.async.KeyValue;
 import org.hbase.async.generated.ClientPB.Get;
 import org.hbase.async.generated.ClientPB.Result;
 import org.hbase.async.generated.HBasePB.TableName;
@@ -25,7 +23,7 @@ public class HBaseServer extends AbstractVerticle  {
 	private static final String AWSID = "103032155548";
 	
 	private static HBaseClient client;
-	private static Connection conn;
+//	private static HConnection conn;
 	private static Configuration conf;
 //	private static HTableInterface tweetInterface;
 	
@@ -95,8 +93,18 @@ public class HBaseServer extends AbstractVerticle  {
 	private String processRequest(String rowKey) {
 		String output = null;
 //        HTable table = null;
+		final byte[] table = "tweet".getBytes();
+		final byte[] key = rowKey.getBytes();
 		try {
-			GetRequest get = new GetRequest(tableTweet, rowKey);
+			GetRequest getRequest = new GetRequest(table, key);
+			ArrayList<KeyValue> resultSets = client.get(getRequest).joinUninterruptibly();
+			StringBuffer sb = new StringBuffer();
+			for (KeyValue pair : resultSets) {
+				String output = Bytes.
+				
+				sb.append(pair.value());
+				sb.append(str)
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
