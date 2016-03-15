@@ -3,7 +3,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
-import org.apache.commons.configuration.Configuration;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.HConnectionManager;
 import org.hbase.async.Bytes;
 import org.hbase.async.GetRequest;
 import org.hbase.async.HBaseClient;
@@ -100,11 +102,10 @@ public class HBaseServer extends AbstractVerticle  {
 			ArrayList<KeyValue> resultSets = client.get(getRequest).joinUninterruptibly();
 			StringBuffer sb = new StringBuffer();
 			for (KeyValue pair : resultSets) {
-				String output = Bytes.
-				
 				sb.append(pair.value());
-				sb.append(str)
+				sb.append("\n");
 			}
+			sb.append("\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
