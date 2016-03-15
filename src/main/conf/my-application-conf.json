@@ -1,0 +1,5 @@
+{
+  "http.port" : 8080,
+  "url": "jdbc:hsqldb:file:db/q2v5",
+  "driver_class": "org.hsqldb.jdbcDriver"
+}
