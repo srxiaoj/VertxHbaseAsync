@@ -1,10 +1,13 @@
 import java.io.IOException;
+import java.sql.Connection;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
 import javax.security.auth.login.Configuration;
 
-import org.hbase.async.Bytes;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.HConnectionManager;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.hbase.async.GetRequest;
 import org.hbase.async.HBaseClient;
 import org.hbase.async.generated.ClientPB.Get;
@@ -75,8 +78,6 @@ public class HBaseServer extends AbstractVerticle  {
 	private void q2(RoutingContext routingContext) {
 		try {
 			HttpServerRequest req = routingContext.request();
-			asyncHBaseClient hbClient;
-			hbClient = new asyncHBaseClient(conn);
 			processRequest(req, hbClient);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
