@@ -1,18 +1,16 @@
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.HConnection;
 import org.apache.hadoop.hbase.client.HConnectionManager;
-import org.hbase.async.Bytes;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hbase.async.GetRequest;
 import org.hbase.async.HBaseClient;
 import org.hbase.async.KeyValue;
-import org.hbase.async.generated.ClientPB.Get;
-import org.hbase.async.generated.ClientPB.Result;
-import org.hbase.async.generated.HBasePB.TableName;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -25,13 +23,14 @@ public class HBaseServer extends AbstractVerticle  {
 	private static final String AWSID = "103032155548";
 	
 	private static HBaseClient client;
-//	private static HConnection conn;
+	private static HConnection conn;
 	private static Configuration conf;
 //	private static HTableInterface tweetInterface;
-	
+//	private final static Logger logger = Logger.getRootLogger();
+	private final static Logger logger = LoggerFactory.getLogger(HBaseServer.class);
 	private static String zkAddr = "172.31.22.224"; //DNS
 	private static String tableName = "tweet";
-	private static TableName tableTweet = TableName.valueOf(tableName);
+//	private static TableName tableTweet = TableName.valueOf(tableName);
 //	private static HTableInterface tweetTable;
 
 	@Override
@@ -55,6 +54,7 @@ public class HBaseServer extends AbstractVerticle  {
 	}
 	
 	private void initializeConnection()  {
+		logger.setLevel(Level.ERROR);
 		conf = HBaseConfiguration.create();
 		conf.set("hbase.master", zkAddr + ":60000");
         conf.set("hbase.zookeeper.quorum", zkAddr);
@@ -66,7 +66,6 @@ public class HBaseServer extends AbstractVerticle  {
 	    
         try {
 			conn = HConnectionManager.createConnection(conf);
-//			hbClient = new asyncHBaseClient(conn);
 			System.out.print("Successfully initiate hbClient");
 		} catch (IOException e) {
 			System.out.println("Exception occurs in conn or hbClient");
@@ -78,35 +77,31 @@ public class HBaseServer extends AbstractVerticle  {
 	private void q2(RoutingContext routingContext) {
 		try {
 			HttpServerRequest req = routingContext.request();
-			processRequest(req, hbClient);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			String userid = req.params().get("userid").trim();
+			String hashtag = req.params().get("hashtag").trim();
+			String rowKey = userid + hashtag;
+			String response = processRequest(rowKey);
+			req.response().headers().set("Content-Type", "text/plain");
+			req.response().end(response);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
-//		String userid = req.params().get("userid").trim();
-//		String hashtag = req.params().get("hashtag").trim();
-//		String rowKey = userid + hashtag;
-//		String response = processRequest(rowKey);
-//		req.response().headers().set("Content-Type", "text/plain");
-//		req.response().end(response);
 	}
 	
 	private String processRequest(String rowKey) {
 		String output = null;
-//        HTable table = null;
-		final byte[] table = "tweet".getBytes();
-		final byte[] key = rowKey.getBytes();
 		try {
-			GetRequest getRequest = new GetRequest(table, key);
+			GetRequest getRequest = new GetRequest("tweet", rowKey);
 			ArrayList<KeyValue> resultSets = client.get(getRequest).joinUninterruptibly();
 			StringBuffer sb = new StringBuffer();
 			for (KeyValue pair : resultSets) {
-				sb.append(pair.value());
+				output = Bytes.toString(pair.value()).replaceAll("\\\\n", "\n");
+				sb.append(output);
 				sb.append("\n");
 			}
 			sb.append("\n");
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return output;
@@ -114,7 +109,7 @@ public class HBaseServer extends AbstractVerticle  {
         // Get a specific value
 	}
 	
-	private void processRequest(HttpServerRequest req, asyncHBaseClient hbClient) {
+	/*private void processRequest(HttpServerRequest req, asyncHBaseClient hbClient) {
 		System.out.print("Begin to process request");
 
 		hbClient.getConnection(); // ?? necessary?
@@ -132,14 +127,14 @@ public class HBaseServer extends AbstractVerticle  {
 		Get getResult = new Get(row);
 		Result result = new Result(); // result is byte[]
 		try {
-			/**
+			*//**
 			 * Create a connection to the cluster. HConnection connection =
 			 * HConnectionManager.createConnection(Configuration);
 			 * HTableInterface table = connection.getTable("myTable"); // use
 			 * table as needed, the table returned is lightweight table.close();
 			 * use the connection for other access to the cluster
 			 * connection.close();
-			 */
+			 *//*
 			//still use one connection? 
 			result = hbClient.get(tableTweet, getResult, hbClient.<Result>newPromise()).get();
 			
@@ -161,6 +156,6 @@ public class HBaseServer extends AbstractVerticle  {
 		
 		req.response().end(text);
 		//how to close?
-	}
+	}*/
 
 }
